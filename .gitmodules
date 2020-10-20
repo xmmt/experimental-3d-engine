@@ -1,0 +1,8 @@
+[submodule "experimental-3d-engine/experimental-3d-engine/glfw"]
+	path = experimental-3d-engine/experimental-3d-engine/glfw
+	url = https://github.com/glfw/glfw.git
+	branch = 3.3-stable
+[submodule "experimental-3d-engine/experimental-3d-engine/imgui"]
+	path = experimental-3d-engine/experimental-3d-engine/imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = master
