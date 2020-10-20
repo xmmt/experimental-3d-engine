@@ -8,9 +8,9 @@
    Note that Windows.h needs to be included before them. */
 
 #include <cstdio>
-#include <Windows.h>
-#include <GL/glcorearb.h>
-#include <GL/wglext.h>
+#define GLAD_GL_IMPLEMENTATION
+#define GLAD_WGL_IMPLEMENTATION
+#include <glad/wgl.h>
 
 LRESULT CALLBACK window_procedure(HWND, UINT, WPARAM, LPARAM);
 void* get_proc(const char*);
@@ -25,10 +25,12 @@ bool quit = false;
    separate header file and add "extern" in front, so that we can use them
    anywhere after loading them only once. */
 
-PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
-PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
-PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
-PFNGLGETSTRINGPROC glGetString;
+//PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
+//PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+//PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+//PFNGLGETSTRINGPROC glGetString;
+
+void draw();
 
 int WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE prev_instance_handle, PSTR cmd_line, int cmd_show) {
     /* REGISTER WINDOW */
@@ -99,7 +101,9 @@ int WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE prev_instance_handle, PS
     wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)get_proc("wglGetExtensionsStringARB");
     wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)get_proc("wglChoosePixelFormatARB");
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)get_proc("wglCreateContextAttribsARB");
-    glGetString = (PFNGLGETSTRINGPROC)get_proc("glGetString");
+    //glGetString = (PFNGLGETSTRINGPROC)get_proc("glGetString");
+    auto r1 = gladLoadGL((GLADloadfunc)get_proc);
+    auto r2 = gladLoadWGL(dc, (GLADloadfunc)get_proc);
 
     FreeLibrary(gl_module);
     /* ************** */
@@ -165,8 +169,8 @@ int WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE prev_instance_handle, PS
 
     /* NEW CONTEXT */
     GLint context_attributes[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+        WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+        WGL_CONTEXT_MINOR_VERSION_ARB, 6,
         WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
         0
     };
@@ -174,6 +178,8 @@ int WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE prev_instance_handle, PS
     rc = wglCreateContextAttribsARB(dc, 0, context_attributes);
     wglMakeCurrent(dc, rc);
     /* *********** */
+
+    //glViewport(0, 0, 800, 600);
 
     /* EVENT PUMP */
     MSG msg;
@@ -187,7 +193,7 @@ int WINAPI WinMain(HINSTANCE instance_handle, HINSTANCE prev_instance_handle, PS
             DispatchMessage(&msg);
         }
 
-        // draw(); <- there goes your drawing
+        draw();
 
         SwapBuffers(dc);
     }
@@ -223,4 +229,11 @@ void* get_proc(const char* proc_name) {
         proc = (void*)GetProcAddress(gl_module, proc_name);
 
     return proc;
+}
+
+void draw() {
+    glViewport(0, 0, 800, 600);
+    glClearColor(0.5f, 0.0f, 0.0f, 0.5f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glFlush();
 }
