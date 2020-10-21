@@ -4,39 +4,27 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <thread>
 
-#include "glfw/deps/linmath.h"
+static const char* vertexShaderSource = R"shader(
+#version 460 core
 
-static const struct
-{
-    float x, y;
-    float r, g, b;
-} vertices[3] = {
-    { -0.6f, -0.4f, 1.f, 0.f, 0.f },
-    { 0.6f, -0.4f, 0.f, 1.f, 0.f },
-    { 0.f, 0.6f, 0.f, 0.f, 1.f }
-};
+layout(location = 0) in vec3 position;
 
-static const char* vertex_shader_text = "#version 110\n"
-                                        "uniform mat4 MVP;\n"
-                                        "attribute vec3 vCol;\n"
-                                        "attribute vec2 vPos;\n"
-                                        "varying vec3 color;\n"
-                                        "void main()\n"
-                                        "{\n"
-                                        "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-                                        "    color = vCol;\n"
-                                        "}\n";
+void main() {
+    gl_Position = vec4(position.x, position.y, position.z, 1.0);
+}
+)shader";
 
-static const char* fragment_shader_text = "#version 110\n"
-                                          "varying vec3 color;\n"
-                                          "void main()\n"
-                                          "{\n"
-                                          "    gl_FragColor = vec4(color, 1.0);\n"
-                                          "}\n";
+static const char* fragmentShaderSource = R"shader(
+#version 460 core
+
+out vec4 color;
+
+void main() {
+	color = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+}
+)shader";
 
 static void error_callback(int error, const char* description) {
     fprintf(stderr, "Error: %s\n", description);
@@ -48,19 +36,16 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 int main(void) {
-    GLFWwindow* window;
-    GLuint vertex_buffer, vertex_shader, fragment_shader, program;
-    GLint mvp_location, vpos_location, vcol_location;
-
     glfwSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if (!glfwInit()) {
         exit(EXIT_FAILURE);
+    }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -68,74 +53,72 @@ int main(void) {
 
     glfwSetKeyCallback(window, key_callback);
 
-    std::thread thr([&]
-    {
+    std::thread thr([&] {
+        glfwMakeContextCurrent(window);
+        gladLoadGL(glfwGetProcAddress);
+        gladLoadWGL(reinterpret_cast<HDC>(window), glfwGetProcAddress);
+        glfwSwapInterval(1);
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL(glfwGetProcAddress);
-    gladLoadWGL((HDC)window, glfwGetProcAddress);
-    glfwSwapInterval(1);
+        GLfloat vertices[] = {
+            -0.5f, -0.5f, 0.0f,
+            0.5f, -0.5f, 0.0f,
+            0.0f, 0.5f, 0.0f
+        };
+        GLuint VBO;
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // NOTE: OpenGL error checks have been omitted for brevity
+        const GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+        glCompileShader(vertexShader);
 
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        const GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+        glCompileShader(fragmentShader);
 
-    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-    glCompileShader(vertex_shader);
+        const GLuint shaderProgram = glCreateProgram();
 
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-    glCompileShader(fragment_shader);
+        glAttachShader(shaderProgram, vertexShader);
+        glAttachShader(shaderProgram, fragmentShader);
+        glLinkProgram(shaderProgram);
 
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), static_cast<GLvoid*>(nullptr));
+        glEnableVertexAttribArray(0);
 
-    mvp_location = glGetUniformLocation(program, "MVP");
-    vpos_location = glGetAttribLocation(program, "vPos");
-    vcol_location = glGetAttribLocation(program, "vCol");
+        GLuint VAO;
+        glGenVertexArrays(1, &VAO);
 
-    glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-      sizeof(vertices[0]), (void*)0);
-    glEnableVertexAttribArray(vcol_location);
-    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-      sizeof(vertices[0]), (void*)(sizeof(float) * 2));
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), static_cast<GLvoid*>(nullptr));
+        glEnableVertexAttribArray(0);
+        glBindVertexArray(0);
 
-    while (!glfwWindowShouldClose(window)) {
-        float ratio;
-        int width, height;
-        mat4x4 m, p, mvp;
+        while (!glfwWindowShouldClose(window)) {
+            int width, height;
 
-        glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float)height;
+            glfwGetFramebufferSize(window, &width, &height);
+            float ratio = width / static_cast<float>(height);
 
-        glViewport(0, 0, width, height);
-        glClearColor(0.5f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
+            glViewport(0, 0, width, height);
+            glClearColor(0.5f, 0.f, 0.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
-        mat4x4_identity(m);
-        mat4x4_rotate_Z(m, m, (float)glfwGetTime());
-        mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-        mat4x4_mul(mvp, p, m);
+            glUseProgram(shaderProgram);
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glBindVertexArray(0);
 
-        glUseProgram(program);
-        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*)mvp);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+            glfwSwapBuffers(window);
+        }
 
-        glfwSwapBuffers(window);
-        //glfwPollEvents();
-    }
-
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
     });
 
     while (!glfwWindowShouldClose(window)) {
-        //std::this_thread::yield();
-        //glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
