@@ -52,6 +52,7 @@ std::string CoreWindow::glslVersionToStr_(int glslVersion) const {
 
 
 bool CoreWindow::init_() {
+    glfwSetErrorCallback(errorCallback_);
     glfwWindow_ = glfwCreateWindow(windowResolution_.width(), windowResolution_.height(), windowTitle_.data(), nullptr, nullptr);
     if (glfwWindow_ == nullptr) {
         return false;
@@ -99,3 +100,8 @@ void CoreWindow::runCycle_() {
 void CoreWindow::errorCallback_(int error, const char* description) {
     std::cerr << "Error: " << description << std::endl;
 }
+
+//static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+//    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+//        glfwSetWindowShouldClose(window, GLFW_TRUE);
+//}
