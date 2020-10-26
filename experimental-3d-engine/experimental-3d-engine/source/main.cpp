@@ -5,7 +5,7 @@ int main(void) {
       .setOpenGLVersion({ 4, 6, 460 })
       .setWindowResolution({ 1600, 900 })
       .setWindowTitle("Simple example")
-      .addRenderModule({ [] {
+      .addRenderModule({ []() mutable {
           GLfloat vertices[] = {
               -0.5f, -0.5f, 0.0f,
               0.5f, -0.5f, 0.0f,
@@ -15,12 +15,10 @@ int main(void) {
           glGenBuffers(1, &VBO);
           glBindBuffer(GL_ARRAY_BUFFER, VBO);
           glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-          auto vertexShader = make_shared<Engine::Shader<Engine::ShaderType::VertexShader>>(ShaderSources::vertexShaderSource);
-          auto fragmentShader = make_shared<Engine::Shader<Engine::ShaderType::FragmentShader>>(ShaderSources::fragmentShaderSource);
-          const GLuint shaderProgram = glCreateProgram();
-          glAttachShader(shaderProgram, vertexShader->get());
-          glAttachShader(shaderProgram, fragmentShader->get());
-          glLinkProgram(shaderProgram);
+          auto shaderProgram = Engine::makeShaderProgram()
+                                 .addVertexShader(ShaderSources::vertexShaderSource)
+                                 .addFragmentShader(ShaderSources::fragmentShaderSource)
+                                 .link();
           glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), static_cast<GLvoid*>(nullptr));
           glEnableVertexAttribArray(0);
           GLuint VAO;
@@ -32,14 +30,13 @@ int main(void) {
           glEnableVertexAttribArray(0);
           glBindVertexArray(0);
 
-          return [=](int width, int height) {
+          return [VAO, shaderProgram{ std::move(shaderProgram) }](int width, int height) mutable {
               auto ratio = static_cast<float>(width) / static_cast<float>(height);
 
               glViewport(0, 0, width, height);
               glClearColor(0.5f, 0.f, 0.f, 1.f);
               glClear(GL_COLOR_BUFFER_BIT);
-
-              glUseProgram(shaderProgram);
+              shaderProgram.use();
               glBindVertexArray(VAO);
               glDrawArrays(GL_TRIANGLES, 0, 3);
               glBindVertexArray(0);
