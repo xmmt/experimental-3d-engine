@@ -1,12 +1,12 @@
 #pragma once
 
-#include <functional>
+#include <utils/FunctionHolder.hpp>
 
 namespace Engine {
 
 class RenderModule {
 public:
-    RenderModule(std::function<std::function<void(int, int)>()>&& initFunction)
+    RenderModule(Function<Function<void(int, int)>()>&& initFunction)
         : initFunction_(std::move(initFunction)) {
     }
     void init() {
@@ -21,8 +21,8 @@ public:
     }
 
 private:
-    std::function<std::function<void(int, int)>()> initFunction_;
-    std::function<void(int, int)> drawFunction_;
+    Function<Function<void(int, int)>()> initFunction_;
+    Function<void(int, int)> drawFunction_;
 };
 
 } // namespace Engine

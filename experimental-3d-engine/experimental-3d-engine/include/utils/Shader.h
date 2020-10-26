@@ -70,7 +70,10 @@ class Program {
 public:
     friend Program<ProgramState::RequiersVertexShader> makeShaderProgram();
 
-    Program(Program const&) = default;
+    Program(Program const&) = delete;
+    Program operator=(Program const&) = delete;
+    Program operator=(Program&&) = delete;
+
     friend class Program<ProgramState::RequiersVertexShader>;
     friend class Program<ProgramState::RequiersFragmentShader>;
     friend class Program<ProgramState::RequiersLinking>;
@@ -79,28 +82,31 @@ public:
         : program_(other.program_)
         , vertexShader_(std::move(other.vertexShader_))
         , fragmentShader_(std::move(other.fragmentShader_)) {
+        static_assert(State == ProgramState::RequiersVertexShader || State == ProgramState::RequiersFragmentShader);
         other.program_ = 0;
     }
     Program(Program<ProgramState::RequiersFragmentShader>&& other)
         : program_(other.program_)
         , vertexShader_(std::move(other.vertexShader_))
         , fragmentShader_(std::move(other.fragmentShader_)) {
+        static_assert(State == ProgramState::RequiersFragmentShader || State == ProgramState::RequiersLinking);
         other.program_ = 0;
     }
     Program(Program<ProgramState::RequiersLinking>&& other)
         : program_(other.program_)
         , vertexShader_(std::move(other.vertexShader_))
         , fragmentShader_(std::move(other.fragmentShader_)) {
+        static_assert(State == ProgramState::RequiersLinking || State == ProgramState::ReadyToUse);
         other.program_ = 0;
     }
     Program(Program<ProgramState::ReadyToUse>&& other)
         : program_(other.program_)
         , vertexShader_(std::move(other.vertexShader_))
         , fragmentShader_(std::move(other.fragmentShader_)) {
+        static_assert(State == ProgramState::ReadyToUse);
         other.program_ = 0;
     }
-    Program operator=(Program const&) = delete;
-    Program operator=(Program&&) = delete;
+
     ~Program() {
         if (program_ != 0) {
             glDeleteProgram(program_);
