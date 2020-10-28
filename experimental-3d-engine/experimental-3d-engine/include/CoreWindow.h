@@ -8,6 +8,11 @@
 
 namespace Engine {
 
+struct RenderData {
+    int width{ 0 };
+    int height{ 0 };
+};
+
 class CoreWindow final {
 public:
     CoreWindow() = default;
@@ -15,7 +20,7 @@ public:
     CoreWindow& setOpenGLVersion(Utils::OpenGLVersion oglVersion) noexcept;
     CoreWindow& setWindowResolution(Utils::WindowResolution windowsResolution) noexcept;
     CoreWindow& setWindowTitle(std::string_view windowTitle) noexcept;
-    CoreWindow& addRenderModule(RenderModule&& renderModule);
+    CoreWindow& addRenderModule(RenderModule<RenderData>&& renderModule);
     int run();
 
 private:
@@ -33,7 +38,7 @@ private:
     std::string windowTitle_{ Config::defaultWindowTitle };
     GLFWwindow* glfwWindow_{ nullptr };
     std::string glslVersionS_{ glslVersionToStr_(Config::defaultOpenGLVersion.shaderVersion()) };
-    std::list<RenderModule> modules_;
+    std::list<RenderModule<RenderData>> modules_;
 };
 
 } // namespace Engine

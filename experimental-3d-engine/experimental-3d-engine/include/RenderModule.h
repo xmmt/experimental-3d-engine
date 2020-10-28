@@ -4,25 +4,27 @@
 
 namespace Engine {
 
+template <typename Data>
 class RenderModule {
 public:
-    RenderModule(Function<Function<void(int, int)>()>&& initFunction)
+    template<typename F>
+    RenderModule(F initFunction)
         : initFunction_(std::move(initFunction)) {
     }
-    void init() {
+    void init(Data const& data) {
         if (initFunction_) {
-            drawFunction_ = initFunction_();
+            drawFunction_ = initFunction_(data);
         }
     }
-    void draw(int width, int height) {
+    void draw(Data const& data) {
         if (drawFunction_) {
-            drawFunction_(width, height);
+            drawFunction_(data);
         }
     }
 
 private:
-    Function<Function<void(int, int)>()> initFunction_;
-    Function<void(int, int)> drawFunction_;
+    Function<Function<void(Data const&)>(Data const&)> initFunction_;
+    Function<void(Data const&)> drawFunction_;
 };
 
 } // namespace Engine

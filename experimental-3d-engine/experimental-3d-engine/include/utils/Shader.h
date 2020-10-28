@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cassert>
 #include <glad/gl.h>
 
-#include <string_view>
+#include <cassert>
 
 namespace Engine {
 

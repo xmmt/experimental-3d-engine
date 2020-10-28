@@ -27,7 +27,7 @@ CoreWindow& CoreWindow::setWindowTitle(string_view windowTitle) noexcept {
     return *this;
 }
 
-CoreWindow& CoreWindow::addRenderModule(RenderModule&& renderModule) {
+CoreWindow& CoreWindow::addRenderModule(RenderModule<RenderData>&& renderModule) {
     modules_.emplace_back(std::move(renderModule));
     return *this;
 }
@@ -71,8 +71,10 @@ bool CoreWindow::init_() {
     ImGui_ImplOpenGL3_Init();
     ImGui::GetIO().Fonts->AddFontFromFileTTF(Engine::Config::droidSansPath.data(), 16.0f);
 
+    RenderData data;
+    glfwGetFramebufferSize(glfwWindow_, &data.width, &data.height);
     for (auto&& m : modules_) {
-        m.init();
+        m.init(data);
     }
 
     return true;
@@ -84,10 +86,10 @@ void CoreWindow::runCycle_() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        int width{ 0 }, height{ 0 };
-        glfwGetFramebufferSize(glfwWindow_, &width, &height);
+        RenderData data;
+        glfwGetFramebufferSize(glfwWindow_, &data.width, &data.height);
         for (auto&& m : modules_) {
-            m.draw(width, height);
+            m.draw(data);
         }
 
         ImGui::Render();
