@@ -15,7 +15,9 @@ template <ShaderType Type>
 class Shader {
 public:
     Shader() = default;
-    Shader(Shader const&) = delete;
+    Shader(Shader const&) {
+        assert(false && "Engine::Shader copy constructor is not available");
+    }
     Shader(std::string_view shaderSource)
         : shaderSource_(shaderSource.data())
         , type_(static_cast<GLenum>(Type)) {
@@ -69,7 +71,9 @@ class Program {
 public:
     friend Program<ProgramState::RequiersVertexShader> makeShaderProgram();
 
-    Program(Program const&) = delete;
+    Program(Program const&) {
+        assert(false && "Engine::Program copy constructor is not available");
+    }
     Program operator=(Program const&) = delete;
     Program operator=(Program&&) = delete;
 
