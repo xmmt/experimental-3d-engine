@@ -28,6 +28,7 @@ add_executable (${PROJECT_NAME}
     imgui/imgui_widgets.cpp
     imgui/backends/imgui_impl_opengl3.cpp
     imgui/backends/imgui_impl_glfw.cpp
+    imgui/misc/cpp/imgui_stdlib.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} glfw)

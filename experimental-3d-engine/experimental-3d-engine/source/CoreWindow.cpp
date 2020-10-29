@@ -62,7 +62,7 @@ bool CoreWindow::init_() {
         return false;
     }
     //gladLoadWGL(reinterpret_cast<HDC>(glfwWindow_), glfwGetProcAddress);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

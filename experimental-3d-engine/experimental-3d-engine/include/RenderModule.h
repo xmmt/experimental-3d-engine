@@ -8,7 +8,7 @@ namespace Engine {
 template <typename Data>
 class RenderModule {
 public:
-    template<typename F>
+    template <typename F>
     RenderModule(F&& initFunction)
         : initFunction_(std::forward<F>(initFunction)) {
     }

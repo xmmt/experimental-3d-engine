@@ -75,7 +75,14 @@ public:
         assert(false && "Engine::Program copy constructor is not available");
     }
     Program operator=(Program const&) = delete;
-    Program operator=(Program&&) = delete;
+    Program& operator=(Program<ProgramState::ReadyToUse>&& other) {
+        static_assert(State == ProgramState::ReadyToUse);
+        program_ = other.program_;
+        vertexShader_ = std::move(other.vertexShader_);
+        fragmentShader_ = std::move(other.fragmentShader_);
+        other.program_ = 0;
+        return *this;
+    }
 
     friend class Program<ProgramState::RequiersVertexShader>;
     friend class Program<ProgramState::RequiersFragmentShader>;
