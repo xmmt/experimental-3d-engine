@@ -15,6 +15,18 @@ void main() {
 }
 )shader"sv;
 
+constexpr const auto textureVertexShaderSource =
+  R"shader(#version 460 core
+
+varying vec3 vPos;
+layout(location = 0) in vec3 position;
+
+void main() {
+    vPos = position;
+    gl_Position = vec4(position.x, -position.y, position.z, 1.0);
+}
+)shader"sv;
+
 constexpr const auto fragmentShaderSource =
   R"shader(#version 460 core
 
@@ -28,10 +40,11 @@ void main() {
 constexpr const auto textureFragmentShaderSource =
   R"shader(#version 460 core
 
-out vec4 color;
+varying vec3 vPos;
+layout(location = 0) out vec4 color;
 
 void main() {
-	color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
+	color = vec4(vPos.x * 0.5 + 0.5, vPos.y * 0.5 + 0.5, 0.0f, 1.0f);
 }
 )shader"sv;
 

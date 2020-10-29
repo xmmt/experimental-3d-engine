@@ -85,12 +85,12 @@ int main(void) {
                 }
             };
       } })
-      .addRenderModule({ []([[maybe_unused]] auto const& data) mutable {
+      .addRenderModule({ [](auto const& data) mutable {
           struct State {
               std::string shaderInputStr{ ShaderSources::textureFragmentShaderSource };
               Engine::Program<Engine::ProgramState::ReadyToUse> program{
                   Engine::makeShaderProgram()
-                    .addVertexShader(ShaderSources::vertexShaderSource)
+                    .addVertexShader(ShaderSources::textureVertexShaderSource)
                     .addFragmentShader(shaderInputStr)
                     .link()
               };
@@ -98,10 +98,16 @@ int main(void) {
               GLuint renderedTexture = 0;
               GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 
-              GLfloat vertices[9] = {
+              /*GLfloat vertices[9] = {
                   -0.5f, -0.5f, 0.0f,
                   0.5f, -0.5f, 0.0f,
                   0.0f, 0.5f, 0.0f
+              };*/
+              GLfloat vertices[12] = {
+                  -0.75f, -0.75f, 0.0f,
+                  0.75f, -0.75f, 0.0f,
+                  0.75f, 0.75f, 0.0f,
+                  -0.75f, 0.75f, 0.0f
               };
               GLuint VBO = 0;
               GLuint VAO = 0;
@@ -133,7 +139,7 @@ int main(void) {
           glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
           return [state{ std::move(state) }](
-                   [[maybe_unused]] auto const& data) mutable {
+                   auto const& data) mutable {
               glBindFramebuffer(GL_FRAMEBUFFER, state.framebufferName);
               glViewport(0, 0, 1024, 1024);
 
@@ -141,7 +147,7 @@ int main(void) {
               glClear(GL_COLOR_BUFFER_BIT);
               state.program.use();
               glBindVertexArray(state.VAO);
-              glDrawArrays(GL_TRIANGLES, 0, 3);
+              glDrawArrays(GL_QUADS, 0, 4);
               glBindVertexArray(0);
 
               glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -150,7 +156,7 @@ int main(void) {
               ImGui::InputTextMultiline("##shader_input", &state.shaderInputStr);
               if (ImGui::Button("Compile")) {
                   state.program = Engine::makeShaderProgram()
-                                    .addVertexShader(ShaderSources::vertexShaderSource)
+                                    .addVertexShader(ShaderSources::textureVertexShaderSource)
                                     .addFragmentShader(state.shaderInputStr)
                                     .link();
               }
