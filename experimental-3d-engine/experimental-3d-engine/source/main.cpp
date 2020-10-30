@@ -146,6 +146,12 @@ int main(void) {
               glClearColor(0.0f, 0.f, 0.6f, 1.f);
               glClear(GL_COLOR_BUFFER_BIT);
               state.program.use();
+
+              state.program.setUniform("iResolution", static_cast<float>(data.width), static_cast<float>(data.height));
+              state.program.setUniform("iTime", data.timeCount);
+              state.program.setUniform("iTimeDelta", data.timeDelta);
+              state.program.setUniform("iFrame", data.frameCount);
+
               glBindVertexArray(state.VAO);
               glDrawArrays(GL_QUADS, 0, 4);
               glBindVertexArray(0);

@@ -81,6 +81,8 @@ bool CoreWindow::init_() {
 }
 
 void CoreWindow::runCycle_() {
+    int frameCount{ 0 };
+    float timeCount = glfwGetTime();
     while (!glfwWindowShouldClose(glfwWindow_)) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -88,6 +90,11 @@ void CoreWindow::runCycle_() {
 
         RenderData data;
         glfwGetFramebufferSize(glfwWindow_, &data.width, &data.height);
+        data.frameCount = frameCount++;
+        auto currentTime = glfwGetTime();
+        data.timeDelta = currentTime - timeCount;
+        data.timeCount = currentTime;
+        timeCount = currentTime;
         for (auto&& m : modules_) {
             m.draw(data);
         }

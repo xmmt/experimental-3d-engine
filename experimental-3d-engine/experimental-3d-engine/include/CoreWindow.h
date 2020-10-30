@@ -11,6 +11,9 @@ namespace Engine {
 struct RenderData {
     int width{ 0 };
     int height{ 0 };
+    int frameCount{ 0 };
+    float timeCount{ 0 };
+    float timeDelta{ 0.f };
 };
 
 class CoreWindow final {

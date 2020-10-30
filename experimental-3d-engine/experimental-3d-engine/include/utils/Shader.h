@@ -151,6 +151,36 @@ public:
         glUseProgram(program_);
     }
 
+    [[nodiscard]] bool setUniform(std::string_view uniformName, int i1) const {
+        static_assert(State == ProgramState::ReadyToUse);
+        const int uniformLocation = glGetUniformLocation(program_, uniformName.data());
+        if (uniformLocation == -1) {
+            return false;
+        }
+        glUniform1i(uniformLocation, i1);
+        return true;
+    }
+
+    [[nodiscard]] bool setUniform(std::string_view uniformName, float f1) const {
+        static_assert(State == ProgramState::ReadyToUse);
+        const int uniformLocation = glGetUniformLocation(program_, uniformName.data());
+        if (uniformLocation == -1) {
+            return false;
+        }
+        glUniform1f(uniformLocation, f1);
+        return true;
+    }
+
+    [[nodiscard]] bool setUniform(std::string_view uniformName, float f1, float f2) const {
+        static_assert(State == ProgramState::ReadyToUse);
+        const int uniformLocation = glGetUniformLocation(program_, uniformName.data());
+        if (uniformLocation == -1) {
+            return false;
+        }
+        glUniform2f(uniformLocation, f1, f2);
+        return true;
+    }
+
 private:
     Program() = default;
     Program(GLuint program, Shader<ShaderType::VertexShader>&& vertexShader, Shader<ShaderType::FragmentShader>&& fragmentShader)
